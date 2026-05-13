@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EKO-ECO · Nabíjanie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Familjen+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+    --bg:     #07090d;
+    --s1:     #0d1117;
+    --s2:     #111820;
+    --border: #1c2634;
+    --solar:  #fbbf24;
+    --solar2: #f59e0b;
+    --grid:   #38bdf8;
+    --grid2:  #0ea5e9;
+    --nt:     #34d399;
+    --vt:     #f87171;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --green:  #4ade80;
+    --text:   #e2e8f0;
+    --muted:  #475569;
+    --muted2: #64748b;
+    --r:      14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Familjen Grotesk', sans-serif;
+    min-height: 100vh;
+    background-image:
+        linear-gradient(rgba(251,191,36,.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(251,191,36,.03) 1px,transparent 1px);
+    background-size: 40px 40px;
+    padding-bottom: 60px;
+}
+
+/* ── HEADER ── */
+.hdr {
+    max-width:1000px;margin:0 auto;padding:36px 24px 0;
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;
+}
+.logo{font-size:32px;font-weight:700;letter-spacing:-1.5px;line-height:1}
+.logo .sun{color:var(--solar)}.logo .dash{color:var(--muted);margin:0 2px}.logo .eco{color:var(--grid)}
+.tagline{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);margin-top:5px;letter-spacing:1px}
+.car-pill{
+    background:var(--s1);border:1px solid var(--border);border-radius:50px;
+    padding:10px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);
+    display:flex;align-items:center;gap:8px;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--solar);box-shadow:0 0 8px var(--solar);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── FILTERS ── */
+.filters{max-width:1000px;margin:28px auto 0;padding:0 24px;display:flex;gap:6px;flex-wrap:wrap}
+.filters button{
+    padding:7px 16px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;
+    border:1px solid var(--border);color:var(--muted2);background:transparent;
+    transition:all .15s;font-family:'DM Mono',monospace;
+}
+.filters button:hover{border-color:var(--solar);color:var(--solar)}
+.filters button.on{background:var(--solar);color:#07090d;border-color:var(--solar)}
+
+/* ── CARDS ── */
+.cards{max-width:1000px;margin:20px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;overflow:hidden}
+.card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--c,var(--solar));opacity:.7}
+.card.solar{--c:var(--solar)}.card.grid{--c:var(--grid)}.card.nt{--c:var(--nt)}.card.vt{--c:var(--vt)}.card.tot{--c:var(--purple)}.card.cost{--c:var(--orange)}
+.card-ico{font-size:18px;margin-bottom:8px}
+.card-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.card-val{font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin:4px 0 2px;color:var(--c,var(--solar))}
+.card-u{font-size:12px;font-weight:400;color:var(--muted2)}
+.card-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── RATIO ── */
+.ratio-wrap{max-width:1000px;margin:14px auto 0;padding:0 24px}
+.ratio-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ratio-pct{font-size:48px;font-weight:700;color:var(--solar);letter-spacing:-3px;line-height:1;min-width:110px}
+.ratio-right{flex:1;min-width:200px}
+.ratio-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.bar-track{background:var(--s2);border-radius:50px;height:10px;overflow:hidden;position:relative}
+.bar-solar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--solar2),var(--solar));border-radius:50px;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.bar-legs{display:flex;justify-content:space-between;margin-top:8px;font-family:'DM Mono',monospace;font-size:11px}
+.leg-s{color:var(--solar)}.leg-g{color:var(--grid)}
+
+/* ── ÚSPORY ── */
+.uspory-wrap{max-width:1000px;margin:14px auto 0;padding:0 24px}
+.uspory-hdr{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.vozidla-list{display:flex;flex-direction:column;gap:8px}
+.vozidlo-row{
+    background:var(--s1);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;display:grid;
+    grid-template-columns:1fr auto auto auto;
+    align-items:center;gap:16px;
+}
+.voz-name{font-weight:600;color:var(--text);font-size:13px}
+.voz-name span{display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;font-weight:400}
+.voz-stat{text-align:right}
+.voz-stat .val{font-size:16px;font-weight:700;display:block}
+.voz-stat .lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);display:block;margin-top:1px}
+
+/* Formulár */
+.add-form{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:12px}
+.add-form-title{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px}
+.form-group label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.form-group input{
+    background:var(--s2);border:1px solid var(--border);border-radius:8px;
+    padding:9px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;
+    outline:none;transition:border-color .15s;
+}
+.form-group input:focus{border-color:var(--solar)}
+.btn-add{
+    background:var(--solar);color:#07090d;border:none;border-radius:8px;
+    padding:10px 20px;font-family:'Familjen Grotesk',sans-serif;font-weight:700;
+    font-size:14px;cursor:pointer;white-space:nowrap;transition:opacity .15s;
+}
+.btn-add:hover{opacity:.85}
+.form-msg{font-family:'DM Mono',monospace;font-size:12px;margin-top:8px}
+.form-msg.ok{color:var(--green)}.form-msg.err{color:var(--vt)}
+
+/* ── BAR CHART ── */
+.chart-wrap{max-width:1000px;margin:20px auto 0;padding:0 24px}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.chart-title{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:2px}
+.legend{display:flex;gap:16px;font-family:'DM Mono',monospace;font-size:11px}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.leg-dot.s{background:var(--solar)}.leg-dot.g{background:var(--grid)}
+.chart-inner{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px 16px 12px}
+.day-row{display:grid;grid-template-columns:64px 1fr 60px;align-items:center;gap:10px;margin-bottom:7px}
+.day-row:last-child{margin-bottom:0}
+.day-lbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);text-align:right;white-space:nowrap}
+.day-lbl .dow{color:var(--muted);font-size:10px;display:block}
+.bar-outer{height:22px;background:var(--s2);border-radius:4px;overflow:hidden;display:flex;position:relative;cursor:pointer}
+.bar-outer:hover .tooltip{display:block}
+.tooltip{
+    display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+    background:#1e2d3d;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;
+    padding:5px 10px;border-radius:6px;white-space:nowrap;border:1px solid var(--border);
+    pointer-events:none;z-index:10;
+}
+.seg{height:100%}
+.seg.sol{background:linear-gradient(90deg,var(--solar2),var(--solar))}
+.seg.grd{background:linear-gradient(90deg,var(--grid2),var(--grid))}
+.day-kwh{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);text-align:right}
+.empty{text-align:center;padding:60px 20px;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)}
+.empty .big{font-size:40px;margin-bottom:12px}
+.loading{text-align:center;padding:40px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);animation:pulse 1.5s infinite}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:600px){
+    .ratio-pct{font-size:36px;min-width:80px}
+    .day-row{grid-template-columns:48px 1fr 44px}
+    .card-val{font-size:20px}
+    .vozidlo-row{grid-template-columns:1fr 1fr;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+    <div>
+        <div class="logo"><span class="sun">EKO</span><span class="dash">·</span><span class="eco">ECO</span></div>
+        <div class="tagline">ŠTATISTIKY NABÍJANIA · KIA eNIRO 64 kWh</div>
+    </div>
+    <div class="car-pill"><span class="dot"></span>GoodWe FV · Wallbox AI</div>
+</div>
+
+<div class="filters">
+    <button onclick="setFilter('7d')" id="f7d">7 dní</button>
+    <button onclick="setFilter('30d')" id="f30d" class="on">30 dní</button>
+    <button onclick="setFilter('mesiac')" id="fmesiac">Mesiac</button>
+    <button onclick="setFilter('rok')" id="frok">Rok</button>
+</div>
+
+<!-- KARTIČKY -->
+<div class="cards" id="cards"><div class="loading">Načítavam...</div></div>
+
+<!-- SOLAR RATIO -->
+<div class="ratio-wrap">
+    <div class="ratio-card">
+        <div class="ratio-pct" id="solar-pct">—</div>
+        <div class="ratio-right">
+            <div class="ratio-label">Solárny podiel z celkového nabíjania</div>
+            <div class="bar-track"><div class="bar-solar" id="solar-bar" style="width:0%"></div></div>
+            <div class="bar-legs">
+                <span class="leg-s" id="leg-solar">☀️ — kWh</span>
+                <span class="leg-g" id="leg-grid">🔌 — kWh</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ÚSPORY -->
+<div class="uspory-wrap">
+    <div class="uspory-hdr">💰 Ušetrili sme — porovnanie s ICE vozidlami</div>
+    <div class="vozidla-list" id="vozidla-list"><div class="loading">Načítavam...</div></div>
+    <div class="add-form">
+        <div class="add-form-title">➕ Pridať referenčné vozidlo</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Názov vozidla</label>
+                <input type="text" id="v-nazov" placeholder="napr. VW Golf 2.0 TDI" maxlength="100">
+            </div>
+            <div class="form-group" style="max-width:140px">
+                <label>Spotreba (l/100km)</label>
+                <input type="number" id="v-spotreba" placeholder="6.5" step="0.1" min="1" max="30">
+            </div>
+            <div class="form-group" style="max-width:140px">
+                <label>Cena PHM (€/liter)</label>
+                <input type="number" id="v-cena" placeholder="1.514" step="0.001" min="0.5" max="5">
+            </div>
+            <button class="btn-add" onclick="addVehicle()">Pridať</button>
+        </div>
+        <div class="form-msg" id="form-msg"></div>
+    </div>
+</div>
+
+<!-- BAR CHART -->
+<div class="chart-wrap">
+    <div class="chart-hdr">
+        <span class="chart-title" id="chart-title">Posledných 30 dní — denný prehľad</span>
+        <div class="legend">
+            <span class="leg"><span class="leg-dot s"></span><span style="color:var(--solar)">Solar</span></span>
+            <span class="leg"><span class="leg-dot g"></span><span style="color:var(--grid)">Sieť</span></span>
+        </div>
+    </div>
+    <div class="chart-inner" id="chart"><div class="loading">Načítavam...</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://pblklfocouytlicbljfx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_3oGU9sjWjk0XgDcF60-jEw_3pjyjD_3';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const DOW = ['Ne','Po','Ut','St','Št','Pi','So'];
+let currentFilter = '30d';
+let totalKm = 0, totalCena = 0;
+
+function fmt(n, dec=2) {
+    return Number(n||0).toLocaleString('sk-SK', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+
+function getDateRange(filter) {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const today = fmt(now);
+    if (filter === '7d') {
+        const d = new Date(now); d.setDate(d.getDate()-6);
+        return { from: fmt(d), to: today, label: 'Posledných 7 dní' };
+    } else if (filter === '30d') {
+        const d = new Date(now); d.setDate(d.getDate()-29);
+        return { from: fmt(d), to: today, label: 'Posledných 30 dní' };
+    } else if (filter === 'mesiac') {
+        const from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+        return { from, to: today, label: 'Tento mesiac' };
+    } else {
+        return { from: `${now.getFullYear()}-01-01`, to: today, label: `Tento rok ${now.getFullYear()}` };
+    }
+}
+
+async function loadData(filter) {
+    const range = getDateRange(filter);
+    document.getElementById('chart-title').textContent = range.label + ' — denný prehľad';
+
+    const { data, error } = await sb
+        .from('nabijanie')
+        .select('*')
+        .gte('datum', range.from)
+        .lte('datum', range.to)
+        .order('datum', { ascending: true });
+
+    if (error) { console.error(error); return; }
+
+    // Súčty
+    let solar=0, siet=0, nt=0, vt=0, spolu=0, s_km=0, g_km=0, t_km=0, cena=0;
+    for (const r of data) {
+        solar += +r.solar_kwh; siet += +r.siet_kwh;
+        nt += +r.nt_kwh; vt += +r.vt_kwh; spolu += +r.spolu_kwh;
+        s_km += +r.solar_km; g_km += +r.siet_km; t_km += +r.spolu_km;
+        cena += +r.cena_eur;
+    }
+    totalKm = t_km; totalCena = cena;
+
+    const solar_pct = spolu > 0 ? Math.round(solar/spolu*100) : 0;
+    const dni = data.length;
+
+    // Kartičky
+    document.getElementById('cards').innerHTML = `
+        <div class="card solar"><div class="card-ico">☀️</div><div class="card-lbl">Solár</div><div class="card-val">${fmt(solar)}<span class="card-u"> kWh</span></div><div class="card-sub">${s_km} km · zadarmo</div></div>
+        <div class="card grid"><div class="card-ico">🔌</div><div class="card-lbl">Sieť</div><div class="card-val">${fmt(siet)}<span class="card-u"> kWh</span></div><div class="card-sub">${g_km} km · ${fmt(cena)} €</div></div>
+        <div class="card nt"><div class="card-ico">📉</div><div class="card-lbl">NT tarifa</div><div class="card-val">${fmt(nt)}<span class="card-u"> kWh</span></div><div class="card-sub">nízka tarifa</div></div>
+        <div class="card vt"><div class="card-ico">📈</div><div class="card-lbl">VT tarifa</div><div class="card-val">${fmt(vt)}<span class="card-u"> kWh</span></div><div class="card-sub">vysoká tarifa</div></div>
+        <div class="card tot"><div class="card-ico">⚡</div><div class="card-lbl">Spolu</div><div class="card-val">${fmt(spolu)}<span class="card-u"> kWh</span></div><div class="card-sub">${t_km} km · ${dni} dní</div></div>
+        <div class="card cost"><div class="card-ico">💶</div><div class="card-lbl">Náklady</div><div class="card-val">${fmt(cena)}<span class="card-u"> €</span></div><div class="card-sub">${siet>0 ? fmt(cena/siet,4)+' €/kWh' : '—'}</div></div>
+    `;
+
+    // Solar ratio
+    document.getElementById('solar-pct').textContent = solar_pct + '%';
+    document.getElementById('solar-bar').style.width = solar_pct + '%';
+    document.getElementById('leg-solar').textContent = `☀️ ${fmt(solar)} kWh`;
+    document.getElementById('leg-grid').textContent = `🔌 ${fmt(siet)} kWh`;
+
+    // Bar chart
+    const maxKwh = Math.max(...data.map(r => +r.solar_kwh + +r.siet_kwh), 1);
+    if (data.length === 0) {
+        document.getElementById('chart').innerHTML = '<div class="empty"><div class="big">📊</div>Žiadne dáta.<br>Home Assistant ešte neodoslal záznamy.</div>';
+    } else {
+        document.getElementById('chart').innerHTML = data.map(r => {
+            const s = +r.solar_kwh, g = +r.siet_kwh, tot = s+g;
+            const sw = (s/maxKwh*100).toFixed(1);
+            const gw = (g/maxKwh*100).toFixed(1);
+            const d = new Date(r.datum);
+            const day = d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0');
+            const dow = DOW[d.getDay()];
+            const tip = `☀️ ${s} kWh · 🔌 ${g} kWh · ${tot.toFixed(2)} kWh · ${r.spolu_km} km`;
+            return `<div class="day-row">
+                <div class="day-lbl"><span class="dow">${dow}</span> ${day}</div>
+                <div class="bar-outer">
+                    ${s>0 ? `<div class="seg sol" style="width:${sw}%"></div>` : ''}
+                    ${g>0 ? `<div class="seg grd" style="width:${gw}%"></div>` : ''}
+                    ${s==0&&g==0 ? '<div style="width:100%;height:100%;background:var(--s2)"></div>' : ''}
+                    <span class="tooltip">${tip}</span>
+                </div>
+                <div class="day-kwh">${tot>0 ? tot.toFixed(1) : '—'} kWh</div>
+            </div>`;
+        }).join('');
+    }
+
+    // Vozidlá
+    loadVehicles();
+}
+
+async function loadVehicles() {
+    const { data } = await sb.from('vozidla').select('*').order('id');
+    if (!data || data.length === 0) {
+        document.getElementById('vozidla-list').innerHTML = '<div style="font-family:DM Mono,monospace;font-size:12px;color:var(--muted);padding:12px 0">Zatiaľ žiadne vozidlá.</div>';
+        return;
+    }
+    const co2_ev = totalKm > 0 ? totalKm / 100 * 0.21 : 0; // ~0.21 kg/km EV SK mix
+    document.getElementById('vozidla-list').innerHTML = data.map(v => {
+        const litre = totalKm / 100 * v.spotreba;
+        const cena_ice = litre * v.cena_phm;
+        const usp = cena_ice - totalCena;
+        const co2_ice = litre * 2.31;
+        const co2_usp = co2_ice - co2_ev;
+        const stromy = co2_usp > 0 ? (co2_usp / 21).toFixed(1) : 0;
+        return `<div class="vozidlo-row">
+            <div class="voz-name">🚗 ${v.nazov}<span>${v.spotreba} l/100km · ${Number(v.cena_phm).toFixed(3)} €/l</span></div>
+            <div class="voz-stat"><span class="val" style="color:var(--solar)">${fmt(usp)} €</span><span class="lbl">ušetrené</span></div>
+            <div class="voz-stat"><span class="val" style="color:var(--nt)">${fmt(co2_usp,1)} kg</span><span class="lbl">CO₂ menej</span></div>
+            <div class="voz-stat"><span class="val" style="color:var(--green)">${stromy} 🌳</span><span class="lbl">stromov/rok</span></div>
+        </div>`;
+    }).join('');
+}
+
+async function addVehicle() {
+    const nazov = document.getElementById('v-nazov').value.trim();
+    const spotreba = parseFloat(document.getElementById('v-spotreba').value);
+    const cena_phm = parseFloat(document.getElementById('v-cena').value);
+    const msg = document.getElementById('form-msg');
+    if (!nazov || !spotreba || !cena_phm) {
+        msg.className='form-msg err'; msg.textContent='❌ Vyplň všetky polia.'; return;
+    }
+    const { error } = await sb.from('vozidla').insert({ nazov, spotreba, cena_phm });
+    if (error) { msg.className='form-msg err'; msg.textContent='❌ Chyba: '+error.message; return; }
+    msg.className='form-msg ok'; msg.textContent='✅ Vozidlo pridané!';
+    document.getElementById('v-nazov').value='';
+    document.getElementById('v-spotreba').value='';
+    document.getElementById('v-cena').value='';
+    loadVehicles();
+    setTimeout(()=>msg.textContent='', 3000);
+}
+
+function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('on'));
+    document.getElementById('f'+f).classList.add('on');
+    loadData(f);
+}
+
+// Init
+loadData('30d');
+</script>
+</body>
+</html>
