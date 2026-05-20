@@ -390,11 +390,11 @@ function buildUI() {
     const sol_pct = ts > 0 ? Math.round(tso/ts*100) : 0;
 
     document.getElementById('totals-bar').innerHTML = `
-        <div class="tot-item t"><span class="lbl">SPOLU</span><span class="val">⚡ ${f2(ts)} kWh · ${fi(tk)} km</span></div>
+        <div class="tot-item t"><span class="lbl">SPOLU (${tk>0?f2(tc/tk*100):'0.00'} €/100km)</span><span class="val">⚡ ${f2(ts)} kWh · ${fi(tk)} km</span></div>
         <div class="tot-divider"></div>
         <div class="tot-item s"><span class="lbl">SOLÁR (${sol_pct}%)</span><span class="val">☀️ ${f2(tso)} kWh · ${fi(tso/KWH_PER_100KM*100)} km</span></div>
         <div class="tot-divider"></div>
-        <div class="tot-item g"><span class="lbl">SIEŤ</span><span class="val">🔌 ${f2(tg)} kWh · ${fi(tg/KWH_PER_100KM*100)} km · ${f2(tc)} €<span class="note">(${tg>0?f2(tc/(tg/KWH_PER_100KM*100)*100):'0.00'} €/100km)</span></span></div>
+        <div class="tot-item g"><span class="lbl">SIEŤ (${tg>0?f2(tc/(tg/KWH_PER_100KM*100)*100):'0.00'} €/100km)</span><span class="val">🔌 ${f2(tg)} kWh · ${fi(tg/KWH_PER_100KM*100)} km · ${f2(tc)} €</span></div>
         <div class="tot-divider"></div>
         <div class="tot-item m"><span class="lbl">ušetrené vs Yeti</span><span class="val">💚 ${f2(t_usp)} €</span></div>
     `;
