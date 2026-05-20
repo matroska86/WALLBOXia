@@ -393,7 +393,7 @@ function buildUI() {
         <div class="tot-divider"></div>
         <div class="tot-item s"><span class="lbl">SOLÁR (${sol_pct}%)</span><span class="val">☀️ ${f2(tso)} kWh · ${fi(tso/KWH_PER_100KM*100)} km</span></div>
         <div class="tot-divider"></div>
-        <div class="tot-item g"><span class="lbl">SIEŤ</span><span class="val">🔌 ${f2(tg)} kWh · ${fi(tg/KWH_PER_100KM*100)} km · ${f2(tc)} € · ${tk>0?f2(tc/tk*100):'0.00'} €/100km</span></div>
+        <div class="tot-item g"><span class="lbl">SIEŤ</span><span class="val">🔌 ${f2(tg)} kWh · ${fi(tg/KWH_PER_100KM*100)} km · ${f2(tc)} € · ${tg>0?f2(tc/(tg/KWH_PER_100KM*100)*100):'0.00'} €/100km</span></div>
         <div class="tot-divider"></div>
         <div class="tot-item m"><span class="lbl">ušetrené vs Yeti</span><span class="val">💚 ${f2(t_usp)} €</span></div>
     `;
@@ -507,7 +507,7 @@ function showTab(ym, months, years) {
         ${dayRows}
         <div class="month-sum">
             <div class="ms-item"><div class="ms-lbl">☀️ Solár</div><div class="ms-val s">${f2(mso)} kWh · ${fi(mso/KWH_PER_100KM*100)} km · ${m_sol_pct}%</div></div>
-            <div class="ms-item"><div class="ms-lbl">🔌 Sieť</div><div class="ms-val g">${f2(mg)} kWh · ${fi(mg/KWH_PER_100KM*100)} km · ${f2(mc)} € · ${mk>0?f2(mc/mk*100):'0.00'} €/100km</div></div>
+            <div class="ms-item"><div class="ms-lbl">🔌 Sieť</div><div class="ms-val g">${f2(mg)} kWh · ${fi(mg/KWH_PER_100KM*100)} km · ${f2(mc)} € · ${mg>0?f2(mc/(mg/KWH_PER_100KM*100)*100):'0.00'} €/100km</div></div>
             <div class="ms-item"><div class="ms-lbl">⚡ Spolu</div><div class="ms-val t">${f2(ms)} kWh · ${fi(mk)} km</div></div>
             <div class="ms-item"><div class="ms-lbl">💚 Ušetrené vs Yeti</div><div class="ms-val m">${f2(m_usp)} €</div></div>
         </div>
@@ -538,7 +538,7 @@ function showYearTab(y, rows, months) {
             <div class="ym-hdr"><span class="ym-name">${mName}</span><span>${mr.length} dní</span></div>
             <div class="ym-row">
                 <div class="ym-cell s"><div class="lbl">☀️ Solar</div><div class="val">${f2(mso)} kWh</div><div style="font-size:10px;color:var(--muted2)">${fi(mso/KWH_PER_100KM*100)} km · ${m_sol_pct}%</div></div>
-                <div class="ym-cell g"><div class="lbl">🔌 Sieť</div><div class="val">${f2(mg)} kWh</div><div style="font-size:10px;color:var(--muted2)">${fi(mg/KWH_PER_100KM*100)} km · ${f2(mc)} € · ${mk>0?f2(mc/mk*100):'0.00'} €/100km</div></div>
+                <div class="ym-cell g"><div class="lbl">🔌 Sieť</div><div class="val">${f2(mg)} kWh</div><div style="font-size:10px;color:var(--muted2)">${fi(mg/KWH_PER_100KM*100)} km · ${f2(mc)} € · ${mg>0?f2(mc/(mg/KWH_PER_100KM*100)*100):'0.00'} €/100km</div></div>
                 <div class="ym-cell t"><div class="lbl">⚡ Spolu</div><div class="val">${f2(ms)} kWh</div><div style="font-size:10px;color:var(--muted2)">${fi(mk)} km</div></div>
                 <div class="ym-cell m"><div class="lbl">💚 vs Yeti</div><div class="val">${f2(m_usp)} €</div></div>
             </div>
@@ -549,7 +549,7 @@ function showYearTab(y, rows, months) {
         <div class="year-totals">
             <div class="yt-item"><div class="yt-lbl">⚡ Spolu</div><div class="yt-val t">${f2(ys)} kWh · ${fi(yk)} km</div><div class="yt-sub">${y}</div></div>
             <div class="yt-item"><div class="yt-lbl">☀️ Solár (${y_sol_pct}%)</div><div class="yt-val s">${f2(yso)} kWh · ${fi(yso/KWH_PER_100KM*100)} km</div><div class="yt-sub">zadarmo</div></div>
-            <div class="yt-item"><div class="yt-lbl">🔌 Sieť</div><div class="yt-val g">${f2(yg)} kWh · ${fi(yg/KWH_PER_100KM*100)} km</div><div class="yt-sub">${f2(yc)} € · ${yk>0?f2(yc/yk*100):'0.00'} €/100km</div></div>
+            <div class="yt-item"><div class="yt-lbl">🔌 Sieť</div><div class="yt-val g">${f2(yg)} kWh · ${fi(yg/KWH_PER_100KM*100)} km</div><div class="yt-sub">${f2(yc)} € · ${yg>0?f2(yc/(yg/KWH_PER_100KM*100)*100):'0.00'} €/100km</div></div>
             <div class="yt-item"><div class="yt-lbl">💚 ušetrené vs Yeti</div><div class="yt-val m">${f2(y_usp)} €</div><div class="yt-sub">Škoda Yeti 7L · 1.514€/l</div></div>
         </div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Mesačný prehľad ${y}</div>
